@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Biology Quiz Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#efe3cf;--panel:#f8efdf;--ink:#2a1a2e;--brass:#9a6a12;--tile:#3b2646;--tileink:#f3e3c3;--line:#cdb88f;--mute:#6e5c6f;
+--g1:#c23b4a;--g2:#2f8f5b;--g3:#2f6fb8;--g4:#7b4bb0;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#170f1f;--panel:#231830;--ink:#efe3cf;--brass:#d9a441;--tile:#34233f;--tileink:#efe3cf;--line:#4a3a5c;--mute:#a897ad}}
+:root[data-theme="dark"]{--bg:#170f1f;--panel:#231830;--ink:#efe3cf;--brass:#d9a441;--tile:#34233f;--tileink:#efe3cf;--line:#4a3a5c;--mute:#a897ad}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.5 'Alegreya Sans',system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:14px 12px 40px}
+h1{font:800 1.7rem 'Cinzel',Georgia,serif;color:var(--brass);text-align:center;margin:0}
+.sub{text-align:center;color:var(--mute);margin:2px 0 10px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.top{display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:10px}
+.timer{font:800 2rem 'Cinzel',serif;min-width:5ch;text-align:center}
+.timer.low{color:var(--g1)}
+.teams{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.team{border:3px solid transparent;border-radius:6px;padding:6px;color:#fff;text-align:center;font-weight:700}
+.team span{display:block;font:800 1.6rem 'Cinzel',serif;line-height:1.1}
+.team.on{border-color:var(--ink);box-shadow:0 0 0 3px var(--bg),0 0 0 6px var(--ink)}
+.t1{background:var(--g1)}.t2{background:var(--g2)}.t3{background:var(--g3)}.t4{background:var(--g4)}
+.turn{text-align:center;margin-bottom:8px}
+.key{text-align:center;color:var(--mute);font-size:.9rem;margin-bottom:8px}
+.board{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.tile{aspect-ratio:1;border:0;border-radius:6px;background:var(--tile);color:var(--tileink);font:800 1.3rem 'Cinzel',serif;position:relative;padding:0}
+.tile:hover{background:var(--brass);color:#170f1f}
+.tile.g1{background:var(--g1);color:#fff}.tile.g2{background:var(--g2);color:#fff}.tile.g3{background:var(--g3);color:#fff}.tile.g4{background:var(--g4);color:#fff}
+.tile s{position:absolute;bottom:2px;left:0;right:0;text-decoration:none;font:700 .55rem sans-serif;letter-spacing:1px;opacity:.85}
+.tile i{position:absolute;top:2px;right:4px;font:700 .8rem sans-serif;font-style:normal}
+.row{display:flex;justify-content:center;gap:10px;margin-top:14px}
+.btn{background:var(--panel);border:2px solid var(--line);border-radius:6px;padding:6px 14px;font-weight:700}
+.ov{position:fixed;inset:0;background:rgba(10,5,15,.78);display:flex;align-items:center;justify-content:center;padding:14px;z-index:5}
+.modal{background:var(--panel);border-radius:8px;border-top:10px solid var(--brass);max-width:700px;width:100%;max-height:92%;overflow:auto;padding:18px}
+.modal h2{margin:0 0 6px;font:800 1rem 'Cinzel',serif;color:var(--mute)}
+.modal .q{font-size:1.4rem;font-weight:700;margin:0 0 12px;line-height:1.35}
+.opt{padding:8px 12px;border:2px solid var(--line);border-radius:6px;margin-bottom:6px;font-size:1.15rem}
+.opt.ok,.ans{border-color:var(--g2);background:color-mix(in srgb,var(--g2) 25%,transparent);font-weight:700}
+.ans{border:2px solid var(--g2);border-radius:6px;padding:10px 12px;font-size:1.3rem}
+.short{border:2px dashed var(--line);border-radius:6px;padding:10px 12px;color:var(--mute)}
+.exp{margin:10px 0;padding:8px 12px;border-left:4px solid var(--brass)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.acts .btn{flex:1}
+.good{background:var(--g2);color:#fff;border-color:var(--g2)}.bad{background:var(--g1);color:#fff;border-color:var(--g1)}
+.win{text-align:center;font:800 1.3rem 'Cinzel',serif;margin:12px 0;color:var(--brass)}
+button.opt{display:block;width:100%;text-align:left;background:var(--panel);color:var(--ink)}
+button.opt:hover:not(:disabled){border-color:var(--brass)}
+button.opt:disabled{color:var(--ink);cursor:default}
+.opt.no{border-color:var(--g1);background:color-mix(in srgb,var(--g1) 25%,transparent)}
+.res{font:800 1.2rem 'Cinzel',serif;padding:10px 12px;border-radius:6px;color:#fff;margin:10px 0}
+.res.yes{background:var(--g2)}.res.bad2{background:var(--g1)}
+.sa{display:flex;gap:8px}.sa input{flex:1;font:inherit;padding:8px 10px;border:2px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
+.turn{padding:10px;border-radius:6px;font:800 1.4rem 'Cinzel',serif;border:2px solid var(--line)}
+.tile:disabled{opacity:.5;cursor:not-allowed}.tile:disabled:hover{background:var(--tile);color:var(--tileink)}
+.who{margin:-18px -18px 12px;padding:10px 18px;color:#fff;font:800 1.5rem 'Cinzel',serif;border-radius:0}
+.pickteam{margin:0 0 12px;color:var(--mute)}.pickteam>div:first-child{margin-bottom:6px}
+.tp{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tbtn{border:3px solid transparent;border-radius:6px;color:#fff;font:800 1rem 'Cinzel',serif;padding:8px 4px}
+.tbtn.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--ink)}
+.tbtn:disabled:not(.sel){opacity:.35}
+@media (max-width:640px){.board{grid-template-columns:repeat(5,1fr)}.team span{font-size:1.2rem}.teams{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+// [level, question, answer, explanation, ...wrong options]. No wrong options = short answer.
+const RAW=[
+["E","Osmosis is the movement of which substance across a membrane?","Water","Osmosis is the diffusion of water across a semipermeable membrane.","Glucose","Oxygen","Salt"],
+["E","What channel protein lets water cross membranes quickly?","Aquaporin","Aquaporins are water channels that speed up osmosis."],
+["E","Facilitated diffusion moves substances using...","Transport proteins, without ATP","It needs proteins but no energy input.","ATP and transport proteins","The lipid bilayer only","Vesicles"],
+["E","Fill in: Water moves from a region of ___ water potential to a region of ___ water potential.","High, then low","Water flows down its water potential gradient."],
+["E","What is the water potential of pure water at standard pressure?","0 MPa","Pure water is the reference point, Ψ = 0.","-1 MPa","+1 MPa","100 MPa"],
+["E","A plant cell placed in a hypotonic solution becomes...","Turgid","Water enters and the cell wall resists, so the cell is firm.","Plasmolysed","Flaccid and shrunken","Burst"],
+["E","What is it called when a plant cell membrane pulls away from the cell wall?","Plasmolysis","Water leaves in a hypertonic solution and the protoplast shrinks."],
+["E","Which membrane is semipermeable?","The plasma membrane","It lets some substances through and blocks others.","A glass window","Cell wall only","A plastic bag with no pores"],
+["E","Which sugar enters red blood cells through GLUT1?","Glucose","GLUT1 is a glucose carrier protein."],
+["E","An isotonic solution has...","The same solute concentration as the cell","So there is no net water movement.","More solute than the cell","Less solute than the cell","No solute at all"],
+["E","An animal cell placed in distilled water will...","Swell and may burst (lyse)","It has no cell wall to resist the water entering.","Shrink","Stay the same","Become turgid and firm"],
+["E","What symbol represents water potential?","Psi (Ψ)","Water potential is written Ψ and measured in MPa."],
+["E","Diffusion is the net movement of particles from...","High to low concentration","Particles spread down their concentration gradient.","Low to high concentration","Cold to hot only","Inside to outside only"],
+["E","What do we call a plant cell that is firm and full of water?","Turgid","Water pressure pushes the membrane against the wall."],
+["E","Which process does NOT need energy from the cell?","Facilitated diffusion","It follows the gradient.","Active transport","Endocytosis","Sodium-potassium pump"],
+["E","A solution with MORE solute than the cell is called...","Hypertonic","Water leaves the cell toward it."],
+["E","Adding solute to water makes its water potential...","Lower (more negative)","Solute lowers Ψs.","Higher","Unchanged","Exactly zero"],
+["M","Which equation is correct for water potential?","Ψ = Ψs + Ψp","Water potential = solute potential + pressure potential.","Ψ = Ψs − Ψp","Ψ = Ψs × Ψp","Ψ = Ψp ÷ Ψs"],
+["M","Calculate Ψ if Ψs = -0.5 MPa and Ψp = +0.3 MPa.","-0.2 MPa","Ψ = -0.5 + 0.3 = -0.2 MPa."],
+["M","Cell A has Ψ = -0.4 MPa and cell B has Ψ = -0.8 MPa. Water moves...","From A to B","Water flows to the lower (more negative) Ψ.","From B to A","Not at all","Out of both cells"],
+["M","Why does the rate of facilitated diffusion level off?","A limited number of carrier proteins","All carriers become occupied (saturation).","The cell runs out of ATP","The membrane thickens","Water stops moving"],
+["M","Which type of transport protein changes shape to move glucose across the membrane?","Carrier protein","Carriers bind the solute and change shape."],
+["M","Wilted lettuce becomes crisp in water because...","Water enters by osmosis and turgor rises","The outside is hypotonic to the cells.","Salt leaves the cells","Cells divide","The wall gets thicker"],
+["M","What is Ψ of a fully turgid cell in equilibrium with pure water?","0 MPa","At equilibrium Ψ cell = Ψ outside = 0."],
+["M","Why do polar molecules need transport proteins?","The lipid bilayer core is hydrophobic","Polar substances cannot easily cross it.","They are too small","They are always positive","Membranes have no pores"],
+["M","A plant cell in a hypertonic solution loses water. Its Ψp...","Falls toward zero","Less water means less pressure against the wall.","Becomes very high","Equals Ψs","Does not change"],
+["M","Calculate Ψ if Ψs = -0.8 MPa and Ψp = +0.2 MPa.","-0.6 MPa","-0.8 + 0.2 = -0.6 MPa."],
+["M","Which is an example of channel-mediated facilitated diffusion?","K+ ions through a K+ channel","Ion channels are protein pores that follow gradients.","Na+/K+ pump","Phagocytosis of bacteria","O2 across the lipid bilayer"],
+["M","Insulin increases glucose uptake in muscle by adding GLUT4 to the membrane. This is...","Facilitated diffusion","Glucose moves through carriers down its gradient.","Simple diffusion","Active transport","Exocytosis"],
+["M","What is the pressure a cell wall exerts on the cell contents called?","Pressure potential (turgor pressure)","It is written Ψp."],
+["M","Salt on a slug makes it shrink because...","The outside is hypertonic, so water leaves","Water moves out of the body by osmosis.","Salt enters and pulls water in","The membrane dissolves","Water enters rapidly"],
+["M","When all glucose carriers are occupied, increasing glucose concentration will...","Not increase the rate","The system is saturated.","Double the rate","Reverse the direction","Require ATP"],
+["M","Fill in: Ψs of a solution is always zero or ___.","Negative","Solutes can only lower Ψs below that of pure water."],
+["M","If Ψ outside equals Ψ of the cell, then...","There is no net water movement","The cell is at water equilibrium.","Water enters","Water leaves","The cell bursts"],
+["H","A cell with Ψs = -0.9 MPa reaches equilibrium in pure water. What is Ψp?","+0.9 MPa","Ψ = 0, so Ψp = -Ψs = +0.9 MPa."],
+["H","A flaccid cell (Ψp = 0, Ψs = -0.6 MPa) is placed in solution Ψ = -0.3 MPa. Net water movement is...","Into the cell","The cell Ψ (-0.6) is lower than the solution (-0.3).","Out of the cell","None","Cannot be determined"],
+["H","Cell: Ψs = -1.0 MPa, Ψp = +0.4 MPa. Solution: Ψ = -0.4 MPa. Which way does water move?","Into the cell","Cell Ψ = -0.6 MPa is lower than -0.4 MPa."],
+["H","Why does 0.1 M NaCl lower Ψs more than 0.1 M sucrose?","NaCl dissociates into ions (higher i)","Ψs = -iCRT, and i is about 2 for NaCl.","NaCl is heavier","Sucrose is charged","NaCl raises pressure"],
+["H","What is the ionization constant (i) for sucrose in Ψs = -iCRT?","1","Sucrose does not dissociate in water."],
+["H","Which graph describes facilitated diffusion compared with simple diffusion?","Rate plateaus at saturation","Simple diffusion rises linearly with the gradient.","Rate rises linearly forever","Rate falls with concentration","No relation to concentration"],
+["H","A cell has Ψ = -0.5 MPa and Ψp = +0.2 MPa. What is Ψs?","-0.7 MPa","Ψs = Ψ - Ψp = -0.5 - 0.2.","-0.3 MPa","+0.3 MPa","+0.7 MPa"],
+["H","A competitive inhibitor of a glucose carrier...","Binds the carrier and slows glucose transport","It resembles glucose and occupies the binding site.","Speeds up transport","Provides ATP","Destroys the membrane"],
+["H","A cell Ψ = -0.7 MPa sits in solution Ψ = -0.7 MPa. What happens to cell volume?","No change","No gradient means no net movement."],
+["H","Root cells take up soil water because their Ψ is...","Lower than the soil water Ψ","Water flows to lower Ψ.","Higher than soil Ψ","Equal to soil Ψ","Always zero"],
+["H","As a cell goes from fully turgid to incipient plasmolysis, what happens to Ψp?","It falls to zero","Pressure on the wall disappears."],
+["H","A ligand-gated channel...","Opens when a signal molecule binds","Binding changes channel shape.","Is always open","Needs ATP","Is a lipid"],
+["H","Calculate Ψs of 0.2 M glucose at 298 K (R = 0.00831 L·MPa/mol·K, i = 1).","-0.50 MPa","Ψs = -(1)(0.2)(0.00831)(298) = -0.495."],
+["H","Compared with active transport, facilitated diffusion...","Moves solutes only down the gradient","Active transport can go against it with energy.","Uses ATP","Needs no proteins","Moves solutes against the gradient"],
+["H","A potato cylinder keeps its mass in 0.3 M sucrose. The solution is ___ to the potato cells.","Isotonic","No net water movement."],
+["H","Ψs = -0.7 MPa and Ψ = -0.3 MPa. What is Ψp?","+0.4 MPa","Ψp = Ψ - Ψs = -0.3 + 0.7 = +0.4."],
+["E","What do we call a solution with LOWER solute concentration than the cell?","Hypotonic","The cell gains water from it."],
+["E","Which molecule can cross the lipid bilayer directly by simple diffusion?","Oxygen","Small nonpolar molecules pass through the bilayer.","Glucose","Sodium ions","Proteins"],
+["E","Water potential is measured in which unit?","MPa (megapascals)","Pressure units are used for Ψ.","mL","Mg","Degrees Celsius"],
+["E","What structure around a plant cell stops it from bursting?","Cell wall","It resists the pressure of incoming water."],
+["E","Which cell has no cell wall and can burst in pure water?","Animal cell","Nothing resists the swelling.","Plant cell","Bacterial cell","Fungal cell"],
+["E","What forms the basic barrier of the plasma membrane?","Phospholipid bilayer","Two layers of phospholipids make the barrier."],
+["E","Facilitated diffusion is a type of ___ transport.","Passive","It needs no cellular energy.","Active","Bulk","Vesicular"],
+["E","An animal cell in a hypertonic solution will...","Shrink","Water leaves by osmosis.","Swell","Burst","Stay the same"],
+["E","What is a limp plant cell with no turgor pressure called?","Flaccid","Its Ψp is about zero."],
+["E","Which has the HIGHEST water potential?","Pure water","Solutes lower water potential.","Sugar solution","Salt solution","Cell cytoplasm"],
+["E","What is the net movement of particles from high to low concentration called?","Diffusion","Particles spread down their gradient."],
+["E","Which of these is NOT passive transport?","Active transport","It uses energy to move solutes.","Osmosis","Diffusion","Facilitated diffusion"],
+["E","What type of molecule are carrier and channel proteins?","Protein","Transport proteins sit in the membrane."],
+["E","A dry raisin placed in water swells because...","Water enters by osmosis","The raisin has lower Ψ than the water.","Sugar leaves","The skin dissolves","Air enters"],
+["E","If the outside solution is hypotonic, water moves...","Into the cell","Water flows toward the lower Ψ inside.","Out of the cell","Nowhere","Only through the wall"],
+["E","What is Ψ if Ψs = -0.3 MPa and Ψp = 0?","-0.3 MPa","Ψ = Ψs + Ψp = -0.3 + 0."],
+["E","Selectively permeable means the membrane...","Lets some substances through but not others","It controls what crosses.","Lets everything through","Lets nothing through","Only lets water through"],
+["M","Which describes a carrier protein?","Binds a solute and changes shape","Channels form pores instead.","Forms a permanent open pore","Needs sunlight","Stores ATP"],
+["M","Calculate Ψ if Ψs = -0.9 MPa and Ψp = +0.5 MPa.","-0.4 MPa","-0.9 + 0.5 = -0.4 MPa."],
+["M","Cell Ψ = -0.2 MPa, surrounding solution Ψ = -0.6 MPa. Water moves...","Out of the cell","Water goes to the lower Ψ outside.","Into the cell","Not at all","Only through aquaporins"],
+["M","Increasing solute concentration in cell sap makes Ψs...","More negative","More solute lowers Ψs.","Less negative","Zero","Positive"],
+["M","What is Ψp of a fully plasmolysed plant cell?","0 MPa","The protoplast no longer presses on the wall."],
+["M","Which change increases the rate of simple diffusion?","A steeper concentration gradient","Bigger gradient means faster net movement.","A smaller gradient","Adding ATP","Fewer solute particles"],
+["M","Carrier-mediated transport shows...","Saturation","Rate levels off when carriers are full.","Unlimited rate increase","No specificity","Dependence on ATP"],
+["M","Calculate Ψp if Ψ = -0.2 MPa and Ψs = -0.7 MPa.","+0.5 MPa","Ψp = Ψ - Ψs = -0.2 + 0.7."],
+["M","Why do plant cells not burst in pure water?","The cell wall gives opposing pressure","Ψp rises until Ψ equals 0.","They have no membrane","Water cannot enter","They pump water out"],
+["M","Gated channel proteins...","Open or close in response to a signal","Ligand or voltage can trigger them.","Are always open","Use ATP","Cannot be regulated"],
+["M","Name the process by which water crosses a membrane through aquaporins.","Osmosis","Water diffusion across a membrane."],
+["M","A cell has Ψs = -0.5 MPa. Which solution is hypertonic to it?","One with Ψs = -1.0 MPa","More solute means a more negative Ψs.","One with Ψs = -0.2 MPa","One with Ψs = 0 MPa","One with Ψs = -0.5 MPa"],
+["M","Why is water pulled upward through xylem?","Leaves have lower Ψ than roots","Water moves down the Ψ gradient.","Roots have lower Ψ than leaves","Xylem uses ATP pumps","Gravity pulls water up"],
+["M","What do we call the point where the membrane just begins to pull away from the wall?","Incipient plasmolysis","Ψp is zero at this stage."],
+["M","Which statement about channel proteins is true?","They form a hydrophilic pore","Specific solutes pass through.","They bind ATP to move solutes","They move solutes against the gradient","They are found only in plants"],
+["M","What is Ψ if Ψs = 0 MPa and Ψp = +0.4 MPa?","+0.4 MPa","Ψ = 0 + 0.4."],
+["M","A bag of sucrose solution in water gains mass because...","Water enters toward the lower Ψ inside","The solution inside has lower Ψ.","Sucrose leaves the bag","Water exits","The bag makes energy"],
+["H","Calculate Ψs of 0.3 M sucrose at 298 K (R = 0.00831 L·MPa/mol·K, i = 1).","-0.74 MPa","Ψs = -(1)(0.3)(0.00831)(298) = -0.743."],
+["H","Cell: Ψs = -0.8, Ψp = +0.3 MPa. Solution Ψ = -0.5 MPa. Net water movement is...","None","Cell Ψ = -0.5 equals the solution.","Into the cell","Out of the cell","Cannot be predicted"],
+["H","Cell Ψ = -0.3 MPa is placed in a solution with Ψ = -0.8 MPa. Water moves...","Out of the cell","Water goes to the lower Ψ outside."],
+["H","0.1 M CaCl2 compared with 0.1 M glucose: its Ψs is...","About three times more negative","CaCl2 gives i = 3 and glucose i = 1.","The same","Positive","Half as negative"],
+["H","What is the approximate i for NaCl in Ψs = -iCRT?","2","NaCl splits into Na+ and Cl-."],
+["H","The maximum rate (Vmax) of facilitated diffusion depends on...","The number of carrier proteins","More carriers allow a higher maximum rate.","Only temperature","ATP supply","Membrane color"],
+["H","In a potato core experiment, % mass change is 0 at some sucrose molarity. The solution is then...","Isotonic to the potato cells","No net water movement means equal Ψ.","Hypertonic","Hypotonic","Pure water"],
+["H","A cell in equilibrium with a solution of Ψ = -0.2 MPa has Ψs = -0.6 MPa. What is Ψp?","+0.4 MPa","Ψp = -0.2 + 0.6 = +0.4."],
+["H","During transpiration, mesophyll cell Ψ becomes more negative because...","Water loss concentrates solutes","This pulls water from the xylem.","Solutes leave the cell","The wall gets thicker","ATP is made"],
+["H","Red blood cells without aquaporins in hypotonic solution would...","Swell more slowly but still swell","Water can also cross the bilayer slowly.","Never swell","Shrink","Burst faster"],
+["H","Calculate Ψ if Ψs = -1.2 MPa and Ψp = +0.7 MPa.","-0.5 MPa","-1.2 + 0.7 = -0.5 MPa."],
+["H","Which result best shows facilitated rather than simple diffusion?","Rate plateaus and a carrier inhibitor slows it","Simple diffusion shows neither.","Rate rises linearly forever","ATP is required","Only water moves"],
+["H","Water moves toward the cell with the ___ water potential.","Lower","Water flows down the Ψ gradient."],
+["H","When a cell loses water, its Ψs becomes...","More negative","Solutes become more concentrated.","Less negative","Zero","Unchanged"],
+["H","Calculate Ψ if Ψs = -1.5 MPa and Ψp = +1.5 MPa.","0 MPa","The two terms cancel."],
+["H","Why is drinking seawater dangerous?","Hypertonic fluid draws water out of cells","Osmosis worsens dehydration.","It adds too much water","It is hypotonic","Salt is fully absorbed"]
+];
+const LV={E:{n:"Easy",p:10,d:"●"},M:{n:"Medium",p:20,d:"●●"},H:{n:"Hard",p:30,d:"●●●"}};
+const NAMES=["Team 1","Team 2","Team 3","Team 4"];
+const TOTAL=15*60;
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(p=>p[1]);
+const $=id=>document.getElementById(id);
+const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+let QS,T,sc,cur,open,show,resetAsk,left,running,over,iv,mode="pick";
+function init(){
+ clearInterval(iv);
+ QS=shuf(RAW).map(r=>({l:r[0],q:r[1],a:r[2],e:r[3],o:r.length>4?shuf([r[2],r[4],r[5],r[6]]):null}));
+ T=QS.map(()=>({g:0,r:null}));sc=[0,0,0,0];cur=mode=="rot"?0:-1;open=null;show=false;resetAsk=false;left=TOTAL;running=false;over=false;render();
+}
+function tick(){
+ if(!running)return;
+ left--;
+ if(left<=0){left=0;running=false;over=true;clearInterval(iv);render();return}
+ const t=$("tm");if(t){t.textContent=fmt(left);t.classList.toggle("low",left<=60)}
+}
+function openTile(i){
+ if(T[i].g==0&&over)return;
+ if(!running&&!over&&left==TOTAL){running=true;iv=setInterval(tick,1000)}
+ open=i;show=false;render();
+}
+const nrm=x=>x.toLowerCase().replace(/[−–]/g,"-").replace(/,(\d)/g,".$1");
+const nums=x=>(x.match(/-?\d+(?:\.\d+)?/g)||[]).map(Number);
+function check(q,t){
+ t=nrm(t);const a=nrm(q.a),an=nums(a);
+ if(an.length)return nums(t).includes(an[0]);
+ if(/psi/.test(a))return /psi|ψ/.test(t);
+ const stop=["the","a","an","of","then","to","mpa"];
+ const tk=[...new Set(a.split(/[^a-zψ]+/).filter(w=>w.length>1&&!stop.includes(w)))];
+ const need=tk.length<=2?tk.length:Math.ceil(tk.length/2);
+ return tk.filter(w=>t.includes(w)).length>=need;
+}
+function finish(ok,pk){const t=T[open];t.r=ok;t.p=pk;if(ok)sc[t.g-1]+=LV[QS[open].l].p;cur=mode=="rot"?t.g%4:-1;render()}
+function pickOpt(k){if(over||!T[open].g||T[open].r!==null)return;const q=QS[open];finish(q.o[k]==q.a,q.o[k])}
+function submitSA(){if(over||!T[open].g||T[open].r!==null)return;const v=$("sa").value.trim();if(!v)return;finish(check(QS[open],v),v)}
+function accept(){const t=T[open];if(t.r!==false)return;t.r=true;sc[t.g-1]+=LV[QS[open].l].p;render()}
+function render(){
+ const done=over||T.every(t=>t.r!==null);
+ const max=Math.max(...sc),wins=NAMES.filter((n,i)=>sc[i]==max);
+ let h=`<h1>Biology Quiz Board</h1><p class="sub">Facilitated diffusion, osmosis, and water potential</p>
+ <div class="top"><div class="timer ${left<=60?"low":""}" id="tm">${fmt(left)}</div><button class="btn" id="pz" ${over||left==TOTAL?"disabled":""}>${running?"Pause":"Resume"}</button></div>
+ <div class="teams">${NAMES.map((n,i)=>`<button class="team t${i+1} ${cur==i?"on":""}" data-t="${i}">${n}<span>${sc[i]}</span></button>`).join("")}</div>
+ <div class="turn" style="background:var(--panel);color:var(--ink)">Pick a number, then choose your team inside the question</div>
+ <div class="key">● Easy 10 pts &nbsp; ●● Medium 20 pts &nbsp; ●●● Hard 30 pts. Pick a number, choose your team inside the question, then tap an answer. The timer starts on the first question.</div>
+ <div class="board">${T.map((t,i)=>`<button class="tile ${t.g?"g"+t.g:""}" data-i="${i}" aria-label="Question ${i+1}">${i+1}<s>${LV[QS[i].l].d}</s>${t.r===true?"<i>✓</i>":t.r===false?"<i>✗</i>":""}</button>`).join("")}</div>`;
+ if(done)h+=`<div class="win">${over?"Time is up! ":"All questions done! "}Winner: ${wins.join(" & ")} (${max} pts)</div>`;
+ h+=`<div class="row"><button class="btn" id="rs">${resetAsk?"Sure? Click again to reset":"Shuffle & reset"}</button></div>`;
+ if(open!==null){
+  const q=QS[open],t=T[open],lv=LV[q.l],ans=t.r!==null,dis=ans||over||!t.g;
+  h+=`<div class="ov"><div class="modal" style="border-top-color:var(--g${t.g})"><div class="who" style="background:${t.g?"var(--g"+t.g+")":"var(--tile)"}">${t.g?NAMES[t.g-1]+" is answering":"Choose your team"}</div><h2>Question ${open+1} · ${lv.n} (${lv.p} pts)</h2><p class="q">${q.q}</p>
+  <div class="pickteam"><div>${t.g?"Team locked after you answer.":"Which team is answering? Choose to unlock the answers."}</div><div class="tp">${NAMES.map((n,i)=>`<button class="tbtn t${i+1} ${t.g==i+1?"sel":""}" data-tm="${i}" ${ans||over?"disabled":""}>${n}</button>`).join("")}</div></div>
+  ${q.o?q.o.map((x,k)=>`<button class="opt ${ans?(x==q.a?"ok":(x==t.p?"no":"")):""}" data-k="${k}" ${dis?"disabled":""}>${"ABCD"[k]}. ${x}</button>`).join(""):(ans?`<div class="opt ${t.r?"ok":"no"}">Your answer: ${t.p}</div>${t.r?"":`<div class="ans">Correct answer: ${q.a}</div>`}`:`<div class="sa"><input id="sa" placeholder="Type the short answer" autocomplete="off" ${dis?"disabled":""}><button class="btn good" id="sb" ${dis?"disabled":""}>Submit</button></div>`)}
+  ${ans?`<div class="res ${t.r?"yes":"bad2"}">${t.r?"Correct! +"+lv.p+" pts":"Wrong. +0 pts"} · ${NAMES[t.g-1]} score: ${sc[t.g-1]}</div><div class="exp">${q.o||t.r?"":"Answer: "+q.a+". "}${q.e}</div>`:""}
+  <div class="acts">${(!q.o&&ans&&!t.r&&!over)?`<button class="btn" id="ac">Accept as correct</button>`:""}<button class="btn" id="cl">${ans?"Next":"Close"}</button></div></div></div>`;
+ }
+ $("app").innerHTML=h;
+ document.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>openTile(+b.dataset.i));
+ document.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{cur=+b.dataset.t;render()});
+ $("pz").onclick=()=>{running=!running;render()};
+ $("rs").onclick=()=>{if(resetAsk)init();else{resetAsk=true;render()}};
+ if(open!==null){
+  document.querySelectorAll("[data-tm]").forEach(b=>b.onclick=()=>{T[open].g=+b.dataset.tm+1;render()});
+  document.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>pickOpt(+b.dataset.k));
+  if($("sb")){$("sb").onclick=submitSA;$("sa").onkeydown=e=>{if(e.key=="Enter")submitSA()}}
+  if($("ac"))$("ac").onclick=accept;
+  $("cl").onclick=()=>{open=null;render()};
+ }
+}
+init();
+</script>
+</body>
+</html>
